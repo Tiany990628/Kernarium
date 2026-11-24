@@ -88,9 +88,10 @@ jobs:
 
       - name: Install the accepted kernel bundle
         run: |
-          mkdir -p ".build/kernel/artifacts/$KERNEL_DIR"
+          mkdir -p .build/kernel/artifacts
           tar -xzf ".build/downloads/$KERNEL_ASSET" \
-            -C ".build/kernel/artifacts/$KERNEL_DIR"
+            -C .build/kernel/artifacts
+          test -f ".build/kernel/artifacts/$KERNEL_DIR/kernel-artifact.json"
 
       - name: Install the accepted Android release and its AOT artifact
         run: |
