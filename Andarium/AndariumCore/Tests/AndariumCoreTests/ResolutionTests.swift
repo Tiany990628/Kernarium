@@ -363,6 +363,24 @@ struct SessionDisplayAreaTests {
         #expect(window == CGSize(width: 600, height: 760))
     }
 
+    @Test func anIPhone15ProMaxGivesTheGuestItsWholeScreenOnlyWhenTheFullScreenIsChosen() {
+        // iPhone 15 Pro Max: 430 x 932 pt at a native scale of 3.0 (1290 x
+        // 2796 px). The island takes 59 points at the top and the home
+        // indicator 34 at the foot, so Home lays out in 430 x 839.
+        let home = CGSize(width: 430, height: 839)
+        let normal = SessionDisplayArea.size(home: home, topInset: 59, bottomInset: 34, isPhone: true)
+        #expect(normal == CGSize(width: 430, height: 839))
+        #expect(
+            GuestDisplayLayout(scale: .native, points: normal, nativeScale: 3)?.pixelSize
+                == CGSize(width: 1290, height: 2517))
+        let full = SessionDisplayArea.size(
+            home: home, topInset: 59, bottomInset: 34, isPhone: true, fullScreen: true)
+        #expect(full == CGSize(width: 430, height: 932))
+        #expect(
+            GuestDisplayLayout(scale: .native, points: full, nativeScale: 3)?.pixelSize
+                == CGSize(width: 1290, height: 2796))
+    }
+
     @Test func aPhoneWithAHomeButtonGivesItsBarToTheDisplay() {
         let phone = SessionDisplayArea.size(
             home: CGSize(width: 375, height: 647), topInset: 20, bottomInset: 0, isPhone: true)
