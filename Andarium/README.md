@@ -118,6 +118,15 @@ every screen is laid out as on an iPad of the same size and shape.
   on its edge and the statistics and notices at its top. Bent, the device
   stands like a laptop: the guest is the upper half and the lower half is a
   deck with the keys in one row and the statistics and notices above them.
+- **The whole inner display.** Held upright, flat or bent, and turned flat,
+  the guest takes the whole inner display, the strip the home indicator keeps
+  at its foot included (`FoldReading.sessionGuestArea`): a run defers every
+  edge's system gestures (`SessionGestureDeferral`), so a touch there reaches
+  Android. The deck and the statistics stay in the safe area. Settings' "Use
+  the whole inner screen" (on for a fresh install, kept as
+  `WholeInnerDisplayPreference`, shown only on a folding iPhone, with an info
+  button saying so) turns it off, and the guest then stays above the strip as
+  on an iPhone; the change resizes Android at once.
 - **Other screens.** Bent, Home is one page each side of the fold; flat it is
   Home as on an iPad, one scrolling list with Start at the foot of the screen.
   Flat, Welcome, the boot, the busy, low-space and end cards, and the cards
@@ -759,6 +768,12 @@ address space holds, so this is a fallback.
   keys take touches: while they are open, a touch that begins anywhere else
   reaches Android from its first event and closes the keys
   (`SessionState.closeSideKeys`, called by the display's `touchDidBegin`).
+  The closed keys fade to Settings' "Side keys opacity when idle" (0 to 100
+  percent, 60 percent for a fresh install, kept as `SideKeysPreference`) three
+  seconds after they appear or are last dragged, and are opaque again from
+  the first touch of a drag; they never fade while VoiceOver is on or their
+  tip shows. Only what they draw fades, so out of sight at 0 percent they
+  still open and move where they are.
   Beside the closed keys their tip, while it shows, takes touches on its card
   alone (on a Mac, where an iPad app's popover keeps its dimming view, every
   touch), and it goes with the closed keys when they open or the session ends.
@@ -830,7 +845,12 @@ address space holds, so this is a fallback.
   Android's interface keeps its size at every choice. The row states what the
   next start gives: the display is the window less the session's safe area
   (`SessionDisplayArea`, read by `DisplayAreaProbe`), and follows a window as it
-  resizes. A choice applies at the next start. Native is stored as the symbol
+  resizes. The sheet's "Use the full screen" (off for a fresh install, kept as
+  `FullScreenDisplayPreference`) gives the display the whole window instead:
+  the sensor housing's and the home indicator's rows are the guest's too, so
+  on an iPhone 15 Pro Max the native choice is the screen's own 1290 x 2796.
+  The island covers the top centre of Android's screen and the home indicator
+  lies over its foot, which is why it is a choice. A choice applies at the next start. Native is stored as the symbol
   and follows the screen, and a stored number that is no choice of this screen
   goes to the nearest one. A person who never chose gets the choice nearest 1.5
   (240 dpi) where the system holds the application to 4 GiB of memory or less,
