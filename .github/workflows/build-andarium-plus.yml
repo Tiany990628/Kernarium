@@ -121,6 +121,9 @@ jobs:
       - name: Install dependency build tools
         run: |
           brew install meson ninja pkg-config autoconf automake libtool groff
+          python3 -m pip install --user mako packaging pyyaml
+          python3 -c 'import mako, packaging, yaml'
+          xcodebuild -downloadComponent MetalToolchain || true
 
       - name: Build the dependency prefixes
         run: |
