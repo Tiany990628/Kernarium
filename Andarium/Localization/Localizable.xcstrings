@@ -1483,6 +1483,29 @@
         }
       }
     },
+    "About Use the whole inner screen" : {
+      "comment" : "VoiceOver label of the info button beside “Use the whole inner screen”.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「内側の画面全体を使用」について"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于“使用整个内屏”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關於「使用整個內螢幕」"
+          }
+        }
+      }
+    },
     "Accessibility" : {
       "localizations" : {
         "ja" : {
@@ -1994,6 +2017,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Android"
+          }
+        }
+      }
+    },
+    "Android fills the whole screen. The Dynamic Island and the home indicator stay over it." : {
+      "comment" : "Note under the resolution sheet's Use the full screen switch: what turning it on means for the parts of the screen iOS keeps.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Androidが画面全体に表示されます。Dynamic Islandとホームインジケーターはその上に重なって表示されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安卓会铺满整个屏幕，灵动岛和主屏幕指示条会盖在上面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Android會鋪滿整個螢幕，動態島和主畫面指示條會蓋在上面。"
           }
         }
       }
@@ -3195,6 +3241,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "至少%@"
+          }
+        }
+      }
+    },
+    "Available for iPhone Duo" : {
+      "comment" : "Note beside “Use the whole inner screen”: the switch exists on the iPhone Duo only.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone Duoで利用可能"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适用于iPhone Duo"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "適用於iPhone Duo"
           }
         }
       }
@@ -9762,6 +9831,29 @@
         }
       }
     },
+    "Side keys opacity when idle" : {
+      "comment" : "Slider: how visible the closed side keys stay once they have not been touched for a few seconds, as a percentage.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未使用時のサイドキーの不透明度"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "闲置时侧边按键的不透明度"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閒置時側邊按鍵的不透明度"
+          }
+        }
+      }
+    },
     "Size" : {
       "localizations" : {
         "ja" : {
@@ -14161,6 +14253,29 @@
         }
       }
     },
+    "Use the full screen" : {
+      "comment" : "Switch in the resolution sheet: the guest's display also covers the rows the sensor housing and the home indicator keep.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面全体を使用"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用整个屏幕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用整個螢幕"
+          }
+        }
+      }
+    },
     "Use the pointer as touch" : {
       "comment" : "Switch: clicks of a mouse or trackpad are touches of the screen.",
       "localizations" : {
@@ -14180,6 +14295,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "將指標用作觸控"
+          }
+        }
+      }
+    },
+    "Use the whole inner screen" : {
+      "comment" : "Switch on a folding iPhone: the virtual machine's screen also covers the strip at the bottom of the inner display, where the home indicator is.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内側の画面全体を使用"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用整个内屏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用整個內螢幕"
           }
         }
       }
