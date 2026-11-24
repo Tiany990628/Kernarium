@@ -60,6 +60,14 @@ jobs:
       - name: Check out Andarium Plus
         uses: actions/checkout@v4
 
+      - name: Select Xcode 27 if available
+        run: |
+          ls /Applications | grep -i '^Xcode' || true
+          for app in /Applications/Xcode_27*.app; do
+            if [ -d "$app" ]; then sudo xcode-select -s "$app/Contents/Developer"; fi
+          done
+          xcodebuild -version
+
       - name: Show the toolchain
         run: |
           xcodebuild -version
@@ -89,9 +97,10 @@ jobs:
           mkdir -p .build/android-src .build/aot-src
           tar -xzf ".build/downloads/$ANDROID_ASSET" -C .build/android-src
           tar -xzf ".build/downloads/$AOT_ASSET" -C .build/aot-src
+          ls .build/android-src .build/aot-src
           python3 android/lineage-24/tools/install-release.py \
-            --source .build/android-src/* \
-            --aot-artifact .build/aot-src/*
+            --source "$PWD"/.build/android-src/* \
+            --aot-artifact "$PWD"/.build/aot-src/*
 
       - name: Prepare the dependency sources
         run: |
