@@ -45,7 +45,7 @@ permissions:
 
 jobs:
   build-ipa:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 350
 
     env:
@@ -62,6 +62,8 @@ jobs:
 
       - name: Select Xcode 27 if available
         run: |
+          # The xcode-27 image defaults to Xcode 27, but select a 27
+          # install explicitly in case the image default ever changes.
           ls /Applications | grep -i '^Xcode' || true
           for app in /Applications/Xcode_27*.app; do
             if [ -d "$app" ]; then sudo xcode-select -s "$app/Contents/Developer"; fi
