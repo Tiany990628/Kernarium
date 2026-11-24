@@ -103,9 +103,19 @@ public enum SessionDisplayArea {
     /// phone with a home indicator (`bottomInset` above zero) has a sensor
     /// housing, which is its top inset and stays when the bar hides; a phone
     /// with a home button has only the bar's.
-    public static func size(home: CGSize, topInset: CGFloat, bottomInset: CGFloat, isPhone: Bool) -> CGSize {
-        let keepsTopInset = isPhone && bottomInset > 0
+    ///
+    /// `fullScreen` is the person's "Use the full screen"
+    /// (`FullScreenDisplayPreference`): the display takes the whole window,
+    /// so both insets go to it. The housing then covers the top centre of
+    /// Android's screen and the home indicator lies over its foot, which is
+    /// why it is a choice and not the default. The width is Home's either
+    /// way: the size carries no side insets, and in portrait there are none.
+    public static func size(
+        home: CGSize, topInset: CGFloat, bottomInset: CGFloat, isPhone: Bool, fullScreen: Bool = false
+    ) -> CGSize {
         let top = max(topInset, 0)
+        if fullScreen { return CGSize(width: home.width, height: home.height + top + max(bottomInset, 0)) }
+        let keepsTopInset = isPhone && bottomInset > 0
         return CGSize(width: home.width, height: home.height + (keepsTopInset ? 0 : top))
     }
 }
