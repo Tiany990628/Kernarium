@@ -1,0 +1,38 @@
+name: Artifact to Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  move:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - name: Download Andarium Plus artifact and publish as release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          echo "=== All artifacts ==="
+          gh api "repos/${{ github.repository }}/actions/artifacts?per_page=100" --jq '.artifacts[] | "\(.id) \(.name) \(.size_in_bytes) expired=\(.expired) \(.created_at)"'
+          ID=$(gh api "repos/${{ github.repository }}/actions/artifacts?per_page=100" --jq '[.artifacts[] | select(.name=="Andarium-Plus-unsigned-ipa" and .expired==false)] | sort_by(.created_at) | last | .id')
+          echo "ARTIFACT_ID: $ID"
+          if [ -z "$ID" ] || [ "$ID" = "null" ]; then echo "ERROR: artifact Andarium-Plus-unsigned-ipa not found or expired"; exit 1; fi
+          gh api "repos/${{ github.repository }}/actions/artifacts/$ID/zip" > artifact.zip
+          ls -la artifact.zip
+          mkdir -p out
+          unzip -o artifact.zip -d out
+          find out -type f | head -20
+          IPA=$(find out -name "*.ipa" | head -1)
+          if [ -z "$IPA" ]; then echo "ERROR: no .ipa inside artifact"; exit 1; fi
+          echo "IPA_FILE: $IPA"
+          ls -la "$IPA"
+          TAG="andarium-plus-ipa"
+          gh release delete "$TAG" --repo "${{ github.repository }}" --yes --cleanup-tag || true
+          gh release create "$TAG" "$IPA" --repo "${{ github.repository }}" --title "Andarium Plus (unsigned IPA)" --notes "Unsigned Andarium Plus IPA transferred from Actions artifacts, so the signing page can fetch it by URL."
+          echo "=== Release assets ==="
+          gh release view "$TAG" --repo "${{ github.repository }}" --json assets --jq '.assets[] | "\(.name) \(.size) \(.browser_download_url)"'
