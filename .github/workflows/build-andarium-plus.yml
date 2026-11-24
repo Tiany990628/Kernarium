@@ -104,11 +104,19 @@ jobs:
 
       - name: Prepare the dependency sources
         run: |
-          dependencies/prepare.sh --product macos
-          dependencies/prepare.sh --product ios-network
-          dependencies/prepare.sh --product ios-storage
-          dependencies/prepare.sh --product ios-compression
-          dependencies/prepare.sh --product apple-gpu-vulkan-experiment
+          for product in macos ios-network ios-storage ios-compression apple-gpu-vulkan-experiment; do
+            for attempt in 1 2 3; do
+              if dependencies/prepare.sh --product "$product"; then
+                break
+              fi
+              echo "prepare $product attempt $attempt failed; retrying in 10s"
+              sleep 10
+              if [ "$attempt" = 3 ]; then
+                echo "prepare $product failed after 3 attempts"
+                exit 1
+              fi
+            done
+          done
 
       - name: Build the dependency prefixes
         run: |
