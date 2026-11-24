@@ -40,7 +40,11 @@ struct GuestLayer: View {
                     }
                     .frame(width: geo.size.width, height: geo.size.height)
                 }
-                .ignoresSafeArea(plan == nil ? [] : .all)
+                // The whole screen, where the plan puts the guest in window
+                // coordinates or the person chose "Use the full screen": the
+                // display then runs under the sensor housing and the home
+                // indicator (`SessionDisplayArea`).
+                .ignoresSafeArea(plan != nil || model.fullScreenDisplay ? .all : [])
             }
         }
         .background {

@@ -6,7 +6,8 @@ import Observation
 
 /// Keeps what the person sets across launches: Home's "120 Hz", AOT and JIT
 /// rows, the display options chosen on Home, and Settings' "Show on screen",
-/// "Use the pointer as touch" and "When hot". Each is written when it changes. A
+/// "Use the pointer as touch", "When hot" and "Use the whole inner screen".
+/// Each is written when it changes. A
 /// value the launch decided for its own run is not written, so a harness
 /// launch never replaces what the person stored (`AppModel.displayOptionsToKeep`,
 /// `showStatsToKeep`).
@@ -32,7 +33,13 @@ final class PreferenceKeeper {
         if let options = model.displayOptionsToKeep { DisplayOptionsStore.save(options, to: defaults) }
         if let on = model.showStatsToKeep { StatsPreference(defaults: defaults).keep(on) }
         if let on = model.pointerAsTouchToKeep { PointerPreference(defaults: defaults).keep(on) }
+        let keys = SideKeysPreference(defaults: defaults)
+        if keys.idleOpacity != model.sideKeysIdleOpacity { keys.keep(model.sideKeysIdleOpacity) }
         if let on = model.heatLimitToKeep { HeatLimitPreference(defaults: defaults).keep(on) }
+        let whole = WholeInnerDisplayPreference(defaults: defaults)
+        if whole.isOn != model.wholeInnerDisplay { whole.keep(model.wholeInnerDisplay) }
+        let fullScreen = FullScreenDisplayPreference(defaults: defaults)
+        if fullScreen.isOn != model.fullScreenDisplay { fullScreen.keep(model.fullScreenDisplay) }
         if let on = model.highRefreshToKeep { HighRefreshPreference(defaults: defaults).keep(on) }
         if let on = model.translatedLibrariesToKeep { TranslatedLibrariesPreference(defaults: defaults).keep(on) }
         if let on = model.jitToKeep { JitPreference(defaults: defaults).keep(on) }
@@ -41,6 +48,9 @@ final class PreferenceKeeper {
     private func observe() {
         guard let model else { return }
         withObservationTracking {
+            _ = model.sideKeysIdleOpacity
+            _ = model.wholeInnerDisplay
+            _ = model.fullScreenDisplay
             _ = (model.displayOptionsToKeep, model.showStatsToKeep, model.pointerAsTouchToKeep, model.heatLimitToKeep)
             _ = model.highRefreshToKeep
             _ = (model.translatedLibrariesToKeep, model.jitToKeep)

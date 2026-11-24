@@ -157,6 +157,9 @@ struct AppEntry {
         // unless the launch is a harness's, which decides for its run alone
         // (`StatsPreference.launch`).
         let stats = StatsPreference().launch(for: launch)
+        // Whether the guest takes the whole inner screen of a folding iPhone
+        // is the person's last choice.
+        model.wholeInnerDisplay = WholeInnerDisplayPreference().isOn
         model.session.showStats = stats.showOnScreen
         model.statsDecidedByLaunch = !stats.keepsChanges
         // "Use the pointer as touch" is the person's last choice, unless the
@@ -164,6 +167,11 @@ struct AppEntry {
         let pointer = PointerPreference().launch(automated: !launch.isEmpty)
         model.pointerAsTouch = pointer.isOn
         model.pointerAsTouchDecidedByLaunch = !pointer.keepsChanges
+        // How far the closed side keys fade is the person's last choice.
+        model.sideKeysIdleOpacity = SideKeysPreference().idleOpacity
+        // Whether the guest's display takes the whole screen is the person's
+        // last choice.
+        model.fullScreenDisplay = FullScreenDisplayPreference().isOn
         // Settings' "When hot" is the person's last choice, unless the launch
         // is a harness's and decides for its run alone (`HeatLimitPreference`).
         let heat = HeatLimitPreference().launch(
