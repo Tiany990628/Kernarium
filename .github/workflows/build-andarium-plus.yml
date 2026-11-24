@@ -120,7 +120,7 @@ jobs:
 
       - name: Install dependency build tools
         run: |
-          brew install meson ninja pkg-config autoconf automake libtool
+          brew install meson ninja pkg-config autoconf automake libtool groff
 
       - name: Build the dependency prefixes
         run: |
