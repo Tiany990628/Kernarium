@@ -118,6 +118,10 @@ jobs:
             done
           done
 
+      - name: Install dependency build tools
+        run: |
+          brew install meson ninja pkg-config autoconf automake libtool
+
       - name: Build the dependency prefixes
         run: |
           dependencies/build.sh
