@@ -121,8 +121,10 @@ jobs:
       - name: Install dependency build tools
         run: |
           brew install meson ninja pkg-config autoconf automake libtool groff
-          python3 -m pip install --user mako packaging pyyaml
-          python3 -c 'import mako, packaging, yaml'
+          python3 -m venv .build/gpu-tools-venv
+          .build/gpu-tools-venv/bin/pip install meson mako packaging pyyaml
+          echo "UML_MESA_PYTHON=$PWD/.build/gpu-tools-venv/bin/python" >> "$GITHUB_ENV"
+          .build/gpu-tools-venv/bin/python -c 'import mako, packaging, yaml'
           xcodebuild -downloadComponent MetalToolchain || true
 
       - name: Build the dependency prefixes
