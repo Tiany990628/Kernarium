@@ -1,0 +1,141 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Andarium Plus: build an UNSIGNED Andarium .app on a macOS runner and
+# package it as an IPA for sideload signing (AltStore / SideStore / Feather
+# apply the real signature and the entitlements at install time).
+#
+# This follows the documented build in Andarium/README.md ("Build"):
+#
+#   cmake --preset kernarium-ios-device-android
+#   cmake --build --preset kernarium-ios-device-android
+#   Kernarium/scripts/package-ios-frameworks.sh --runtimes android
+#   Andarium/scripts/stage-system-image.py
+#   xcodebuild -project Andarium/Andarium.xcodeproj -scheme Andarium \
+#       -destination 'generic/platform=iOS' build
+#
+# The embedded artifacts are NOT rebuilt: the kernel bundle, the LineageOS 24
+# release and its AOT artifact are the accepted andarium-1.1 prebuilts,
+# downloaded from the upstream release and installed with the repo's own
+# installers, exactly as a workstation build does:
+#   - kernel bundle  -> .build/kernel/artifacts/<name in accepted-android-4k.env>
+#   - Android release -> android/lineage-24/tools/install-release.py
+#                        (installs below .build/android/releases, AOT below
+#                        .build/android/aot with --aot-artifact)
+#   - system image   -> Andarium/scripts/stage-system-image.py
+#                        (stages the accepted release into .build/andarium-system)
+#
+# Primary target: iPhone 15 Pro Max, iOS 26 or later. Other models are
+# future work; nothing here is device-specific, the app reads the window
+# and its insets at runtime.
+#
+# NOT YET RUN: this workflow was written from the documentation on a Linux
+# machine with no Xcode. Every step that could not be verified against the
+# repo's own scripts carries a TODO. Do not treat a green run as expected
+# on the first attempt; treat the first run as the verification pass.
+
+name: build-andarium-plus
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [andarium-plus]
+
+permissions:
+  contents: read
+
+jobs:
+  build-ipa:
+    runs-on: macos-26
+    timeout-minutes: 350
+
+    env:
+      UPSTREAM_REPO: imxieyi/Kernarium
+      UPSTREAM_TAG: andarium-1.1
+      KERNEL_ASSET: android-6.18-arm64-4k-20261119-6.18.60-ca1.tar.gz
+      KERNEL_DIR: android-6.18-arm64-4k-20261119-6.18.60-ca1
+      ANDROID_ASSET: lineage24-mainline6.18-4k-20261121-los24-r29.tar.gz
+      AOT_ASSET: lineage24-mainline6.18-4k-20261121-los24-r29-aot.tar.gz
+
+    steps:
+      - name: Check out Andarium Plus
+        uses: actions/checkout@v4
+
+      - name: Show the toolchain
+        run: |
+          xcodebuild -version
+          cmake --version
+          python3 --version
+
+      - name: Download the accepted andarium-1.1 prebuilts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .build/downloads
+          gh release download "$UPSTREAM_TAG" --repo "$UPSTREAM_REPO" \
+            --dir .build/downloads \
+            --pattern "$KERNEL_ASSET" \
+            --pattern "$ANDROID_ASSET" \
+            --pattern "$AOT_ASSET"
+          ls -lh .build/downloads
+
+      - name: Install the accepted kernel bundle
+        run: |
+          mkdir -p ".build/kernel/artifacts/$KERNEL_DIR"
+          tar -xzf ".build/downloads/$KERNEL_ASSET" \
+            -C ".build/kernel/artifacts/$KERNEL_DIR"
+
+      - name: Install the accepted Android release and its AOT artifact
+        run: |
+          mkdir -p .build/android-src .build/aot-src
+          tar -xzf ".build/downloads/$ANDROID_ASSET" -C .build/android-src
+          tar -xzf ".build/downloads/$AOT_ASSET" -C .build/aot-src
+          python3 android/lineage-24/tools/install-release.py \
+            --source .build/android-src/* \
+            --aot-artifact .build/aot-src/*
+
+      - name: Prepare the dependency sources
+        run: |
+          dependencies/prepare.sh --product all
+
+      - name: Build the dependency prefixes
+        run: |
+          dependencies/build.sh
+          dependencies/build-ios-network.sh --platform ios
+          dependencies/build-ios-storage.sh
+          dependencies/build-ios-zstd.sh
+          dependencies/build-apple-gpu.sh --platform ios
+
+      - name: Build the Android runtime frameworks
+        run: |
+          cmake --preset kernarium-ios-device-android
+          cmake --build --preset kernarium-ios-device-android
+          Kernarium/scripts/package-ios-frameworks.sh --runtimes android
+
+      - name: Stage the accepted system image
+        run: Andarium/scripts/stage-system-image.py
+
+      - name: Build Andarium unsigned
+        run: |
+          xcodebuild -project Andarium/Andarium.xcodeproj -scheme Andarium \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath .build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Package the unsigned IPA
+        run: |
+          APP=.build/DerivedData/Build/Products/Release-iphoneos/Andarium.app
+          test -d "$APP"
+          rm -rf Payload Andarium-Plus-unsigned.ipa
+          mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry Andarium-Plus-unsigned.ipa Payload
+          ls -lh Andarium-Plus-unsigned.ipa
+
+      - name: Upload the unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Andarium-Plus-unsigned-ipa
+          path: Andarium-Plus-unsigned.ipa
+          retention-days: 14
