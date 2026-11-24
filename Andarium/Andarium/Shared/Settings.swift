@@ -24,6 +24,8 @@ struct SessionSettingsSheet: View {
     @State private var oldAppsOpen = false
     /// The Add to Home Screen page is pushed.
     @State private var addToHomeOpen = false
+    /// The note beside "Use the whole inner screen" is up.
+    @State private var wholeInnerDisplayInfo = false
 
     init(large: Bool) {
         _detent = State(initialValue: large ? .large : .medium)
@@ -37,9 +39,11 @@ struct SessionSettingsSheet: View {
                     if offersInstall { apps }
                     if normalSession, model.capabilities.guestFiles, model.fileBrowser != nil { files }
                     if model.capabilities.statistics { stats(session) }
+                    sideKeys
                     // The thermal session runs in a normal run; Recovery has no HAL.
                     if normalSession { PerformanceSection() }
                     if model.host.supportsPointer { pointer }
+                    if model.foldPose.folds { innerScreen }
                     if let probe = model.inputProbe { inputProbe(probe) }
                     if normalSession, model.capabilities.adbOverNetwork || model.capabilities.textMessages {
                         developer(session)
@@ -412,6 +416,38 @@ struct SessionSettingsSheet: View {
         .padding(.vertical, 4)
     }
 
+    // MARK: Inner screen
+
+    /// On a folding iPhone, whether the guest takes the whole inner screen,
+    /// the strip the home indicator keeps included (`SessionPlan`).
+    private var innerScreen: some View {
+        Section {
+            Toggle(isOn: Binding(get: { model.wholeInnerDisplay }, set: { on in
+                withAnimation(.snappy) { model.wholeInnerDisplay = on }
+            })) {
+                HStack(spacing: 6) {
+                    rowLabel("Use the whole inner screen", symbol: "rectangle.inset.filled")
+                    Button {
+                        wholeInnerDisplayInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("About Use the whole inner screen")
+                    .accessibilityIdentifier("wholeInnerDisplayInfo")
+                    .popover(isPresented: $wholeInnerDisplayInfo) {
+                        Text("Available for iPhone Duo")
+                            .font(.subheadline)
+                            .padding()
+                            .presentationCompactAdaptation(.popover)
+                    }
+                }
+            }
+            .accessibilityIdentifier("wholeInnerDisplay")
+        }
+    }
+
     // MARK: Pointer
 
     /// Off, Android sees a mouse with its own cursor; on, the pointer's clicks
@@ -434,6 +470,36 @@ struct SessionSettingsSheet: View {
                 .textInputAutocapitalization(.never)
                 .accessibilityIdentifier("inputProbeField")
         }
+    }
+
+    // MARK: Side keys
+
+    /// How far the closed side keys fade once left alone, out of sight at 0
+    /// (`SideKeysOverlay`).
+    private var sideKeys: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                LabeledContent {
+                    value(Self.percent(model.sideKeysIdleOpacity))
+                } label: {
+                    rowLabel("Side keys opacity when idle", symbol: "capsule.portrait")
+                }
+                Slider(
+                    value: Binding(
+                        get: { model.sideKeysIdleOpacity },
+                        set: { model.sideKeysIdleOpacity = SideKeysPreference.clampedIdleOpacity($0) }),
+                    in: SideKeysPreference.minimumIdleOpacity...1,
+                    step: SideKeysPreference.idleOpacityStep
+                )
+                .accessibilityLabel("Side keys opacity when idle")
+                .accessibilityValue(Self.percent(model.sideKeysIdleOpacity))
+                .accessibilityIdentifier("sideKeysIdleOpacity")
+            }
+        }
+    }
+
+    private static func percent(_ opacity: Double) -> String {
+        opacity.formatted(.percent.precision(.fractionLength(0)))
     }
 
     // MARK: Stats

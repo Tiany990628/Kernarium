@@ -183,6 +183,13 @@ final class AppModel {
     /// window less the session's safe area (`SessionDisplayArea`). Nil until
     /// Home has laid out and read it.
     var displayPoints: CGSize?
+    /// The resolution sheet's "Use the full screen": the guest's display
+    /// takes the whole window, the sensor housing's and the home indicator's
+    /// rows included (`SessionDisplayArea`). Off for a fresh install: the
+    /// island covers the top centre of Android's screen and the home
+    /// indicator lies over its foot. Kept for the install
+    /// (`FullScreenDisplayPreference`).
+    var fullScreenDisplay = false
     /// What this screen offers.
     var resolutionChoices: ResolutionChoices { ResolutionChoices(nativeScale: screenNativeScale) }
     /// The resolution the guest draws at: the launch's, else the person's
@@ -253,7 +260,11 @@ final class AppModel {
     /// Where the scene is: `.plain` unless the display folds.
     var foldPose: FoldPose { fold?.pose ?? .plain }
     /// The session's layout on a folding display; nil elsewhere.
-    var sessionPlan: SessionPlan? { fold.flatMap(SessionPlan.init) }
+    var sessionPlan: SessionPlan? { fold.flatMap { SessionPlan($0, wholeInnerDisplay: wholeInnerDisplay) } }
+    /// Settings' "Use the whole inner screen" on a folding iPhone: the guest
+    /// takes the strip the home indicator keeps too. Kept for the install
+    /// (`WholeInnerDisplayPreference`).
+    var wholeInnerDisplay = true
 
     var sessionPreset = SessionPreset()
     var session = SessionState() {
@@ -626,6 +637,9 @@ final class AppModel {
     /// What is kept of the setting across launches; nil where the launch
     /// decided it.
     var pointerAsTouchToKeep: Bool? { pointerAsTouchDecidedByLaunch ? nil : pointerAsTouch }
+    /// Settings' "Side keys opacity when idle": the closed keys' opacity once
+    /// left alone, from 0 to 1. Kept for the install (`SideKeysPreference`).
+    var sideKeysIdleOpacity = SideKeysPreference.defaultIdleOpacity
     /// Settings is open over the session. A sheet has the keys, so the guest
     /// does not hold the keyboard focus meanwhile.
     var sessionSettingsOpen = false

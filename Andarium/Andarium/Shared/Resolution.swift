@@ -101,28 +101,34 @@ struct ResolutionSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     @State private var draft: Int?
+    /// The sheet's "Use the full screen" before Save, like `draft`.
+    @State private var draftFullScreen: Bool?
 
     var body: some View {
         let choices = model.resolutionChoices
         let current = model.resolutionIndex
         let chosen = draft ?? current
+        let fullScreen = draftFullScreen ?? model.fullScreenDisplay
         let order = Array((0..<choices.count).reversed())
         NavigationStack {
             ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(order, id: \.self) { index in
-                        if index != order.first { Divider().padding(.leading, 54) }
-                        Button { draft = index } label: { row(index, selected: index == chosen) }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(
-                                ResolutionWords.spokenChoice(
-                                    layout: model.resolutionLayout(at: index),
-                                    dotsPerInch: Self.dotsPerInch(choices, index), end: choices.end(at: index)))
-                            .accessibilityAddTraits(index == chosen ? .isSelected : [])
-                            .accessibilityIdentifier("resolution-choice-\(index)")
+                VStack(spacing: 12) {
+                    VStack(spacing: 0) {
+                        ForEach(order, id: \.self) { index in
+                            if index != order.first { Divider().padding(.leading, 54) }
+                            Button { draft = index } label: { row(index, selected: index == chosen) }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(
+                                    ResolutionWords.spokenChoice(
+                                        layout: model.resolutionLayout(at: index),
+                                        dotsPerInch: Self.dotsPerInch(choices, index), end: choices.end(at: index)))
+                                .accessibilityAddTraits(index == chosen ? .isSelected : [])
+                                .accessibilityIdentifier("resolution-choice-\(index)")
+                        }
                     }
+                    .glassEffect(.regular, in: .rect(cornerRadius: 26))
+                    fullScreenCard(fullScreen)
                 }
-                .glassEffect(.regular, in: .rect(cornerRadius: 26))
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
@@ -137,10 +143,11 @@ struct ResolutionSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         if let draft { model.chooseResolution(choices.scale(at: draft)) }
+                        if let draftFullScreen { model.fullScreenDisplay = draftFullScreen }
                         dismiss()
                     }
                     .fontWeight(.semibold)
-                    .disabled(draft == nil || draft == current)
+                    .disabled((draft == nil || draft == current) && (draftFullScreen == nil || draftFullScreen == model.fullScreenDisplay))
                     .accessibilityIdentifier("resolution-save")
                 }
             }
@@ -149,8 +156,29 @@ struct ResolutionSheet: View {
         .presentationSizing(FixedSheetSizing(width: 540, height: height(of: choices) + 10))
     }
 
-    /// A row is 61 points, and the bar and the margins 72.
-    private func height(of choices: ResolutionChoices) -> CGFloat { CGFloat(choices.count) * 61 + 72 }
+    /// A row is 61 points, and the bar and the margins 72; the full-screen
+    /// card below the choices takes 118 more.
+    private func height(of choices: ResolutionChoices) -> CGFloat { CGFloat(choices.count) * 61 + 72 + 118 }
+
+    /// "Use the full screen": the guest's display takes the whole window, so
+    /// Android fills the screen the resolution above is read on. It is off
+    /// unless the person chooses it: the Dynamic Island covers the top
+    /// centre of Android's screen and the home indicator lies over its foot.
+    /// Like the resolution, it takes effect when the guest next starts.
+    private func fullScreenCard(_ fullScreen: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle(isOn: Binding(get: { fullScreen }, set: { draftFullScreen = $0 })) {
+                Text("Use the full screen")
+            }
+            .accessibilityIdentifier("fullScreenDisplay")
+            Text("Android fills the whole screen. The Dynamic Island and the home indicator stay over it.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .glassEffect(.regular, in: .rect(cornerRadius: 26))
+    }
 
     private static func dotsPerInch(_ choices: ResolutionChoices, _ index: Int) -> Int {
         let scale = choices.scale(at: index)
@@ -212,6 +240,7 @@ struct DisplayAreaProbe: View {
                 }
             }
             .onChange(of: model.sessionPlan?.guest.size) { publish() }
+            .onChange(of: model.fullScreenDisplay) { publish() }
             .allowsHitTesting(false)
             .accessibilityHidden(true)
     }
@@ -229,7 +258,8 @@ struct DisplayAreaProbe: View {
         }
         model.displayPointsDidChange(
             SessionDisplayArea.size(
-                home: size, topInset: window.topInset, bottomInset: window.bottomInset, isPhone: window.isPhone))
+                home: size, topInset: window.topInset, bottomInset: window.bottomInset, isPhone: window.isPhone,
+                fullScreen: model.fullScreenDisplay))
     }
 }
 
