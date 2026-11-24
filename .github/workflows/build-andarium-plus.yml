@@ -62,12 +62,13 @@ jobs:
 
       - name: Select Xcode 27 if available
         run: |
-          # The xcode-27 image defaults to Xcode 27, but select a 27
-          # install explicitly in case the image default ever changes.
+          # Pick the NEWEST Xcode 27 on the image: the image default is
+          # Xcode 27.0, but the app uses iOS 27.2 SDK declarations
+          # (CMMotionManager.authorizationStatus, the inner/outer
+          # ultra-wide camera types) that the 27.0 SDK does not have.
           ls /Applications | grep -i '^Xcode' || true
-          for app in /Applications/Xcode_27*.app; do
-            if [ -d "$app" ]; then sudo xcode-select -s "$app/Contents/Developer"; fi
-          done
+          newest=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -n 1)
+          if [ -n "$newest" ]; then sudo xcode-select -s "$newest/Contents/Developer"; fi
           xcodebuild -version
 
       - name: Show the toolchain
